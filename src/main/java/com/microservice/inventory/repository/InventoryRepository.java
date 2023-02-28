@@ -8,6 +8,6 @@ import com.microservice.inventory.model.Inventory;
 
 public interface InventoryRepository extends JpaRepository<Inventory, Long>{
 
-	Optional<Inventory> findBySkuCode();
+	Optional<Inventory> findBySkuCode(String skuCode);
 
 }
