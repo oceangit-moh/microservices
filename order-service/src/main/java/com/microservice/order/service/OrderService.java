@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.UUID;
 
 import com.microservice.order.dto.InventoryResponse;
+import com.microservice.order.event.OrderPlacedEvent;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +25,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 public class OrderService {
 	private final OrderRepository orderRepository;
 	private final WebClient.Builder webClientBuilder;
-	public void placeOrder(OrderRequest orderRequest) {
+
+	private final KafkaTemplate<String, OrderPlacedEvent> kafkaTemplate;
+	public String placeOrder(OrderRequest orderRequest) {
 		Order order = new Order();
 		order.setOrderNumber(UUID.randomUUID().toString());
 		List<OrderLineItems> orderLineItems = orderRequest.getOrderLineItemsDtoList()
@@ -45,8 +49,13 @@ public class OrderService {
 		if(inventoryResponseArray.length>0)
 		{
 			orderRepository.save(order);
+			kafkaTemplate.send("notificationTopic", new OrderPlacedEvent(order.getOrderNumber()));
+			return "Order Placed Successfully";
 		}
-		else new IllegalArgumentException("Product is not in stock, please try again later");
+		else
+		{
+			throw new IllegalArgumentException("Product is not in stock, please try again later");
+		}
 	}
 	
 	private OrderLineItems mapToDto(OrderLineItemsDto orderLineItemsDto) {
