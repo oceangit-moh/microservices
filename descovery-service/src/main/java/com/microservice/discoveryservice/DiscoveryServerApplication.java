@@ -1,4 +1,4 @@
-package com.microservice.discoveryserver;
+package com.microservice.discoveryservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
